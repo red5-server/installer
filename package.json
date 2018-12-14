@@ -1,0 +1,21 @@
+{
+  "name": "red5-cli",
+  "version": "1.0.0",
+  "description": "Creates a new red5 server",
+  "bin": {
+    "red5": "cli/index.js"
+  },
+  "author": {
+    "name": "Ryan Naddy"
+  },
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "command-line-args": "^5.0.2",
+    "git-clone": "^0.1.0",
+    "typescript": "^3.1.6"
+  },
+  "devDependencies": {
+    "@types/chalk": "^2.2.0",
+    "@types/command-line-args": "^5.0.0"
+  }
+}
