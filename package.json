@@ -12,11 +12,13 @@
     "chalk": "^2.4.1",
     "command-line-args": "^5.0.2",
     "git-clone": "^0.1.0",
-    "typescript": "^3.1.6"
+    "typescript": "^3.1.6",
+    "mkdirp": "^0.5.1"
   },
   "devDependencies": {
     "@types/chalk": "^2.2.0",
     "@types/command-line-args": "^5.0.0",
+    "@types/mkdirp": "^0.5.2",
     "@types/node": "^10.12.2"
   }
 }

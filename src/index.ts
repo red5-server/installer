@@ -5,6 +5,10 @@ process.argv.push('--color')
 import chalk from 'chalk'
 import * as path from 'path'
 import { makeNewProject, CreateOptions } from './create'
+import {
+  makeController, makeMiddleware,
+  MakeControllerOptions, MakeMiddlewareOptions
+} from './make'
 
 export const error = chalk.bold.red
 export const warning = chalk.bold.yellow
@@ -22,13 +26,15 @@ interface Option {
 
 enum Options {
   New = 'new', Serve = 'serve',
-  Make = 'make',
+  MakeController = 'make:controller',
+  MakeMiddleware = 'make:middleware',
   Help = 'help'
 }
 
 let options: Option[] = [
   { name: Options.New, description: 'Creates a new project' },
-  { name: Options.Make, description: `Makes a new item ${warning('(Not yet implemented)')}` },
+  { name: Options.MakeController, description: `Makes a new controller` },
+  { name: Options.MakeMiddleware, description: `Makes a new middleware` },
   { name: Options.Serve, description: 'Serves the current project' },
 ]
 
@@ -57,8 +63,23 @@ if (mainOptions.version === null) {
         // serve()
         console.log(warning('Not yet implemented'))
         break
-      case Options.Make:
-        console.log(warning('Not yet implemented'))
+      case Options.MakeController:
+        const makeDefinitions: OptionDefinition[] = [
+          { name: 'name', type: String, defaultOption: true },
+          { name: 'api', type: Boolean, defaultValue: false },
+          { name: 'resource', type: Boolean, defaultValue: false }
+        ]
+        const makeOptions = cmdArgs(makeDefinitions, { argv, stopAtFirstUnknown: true } as any) as MakeControllerOptions
+        argv = mainOptions._unknown || []
+        makeController(makeOptions)
+        break
+      case Options.MakeMiddleware:
+        const makeMWDefinitions: OptionDefinition[] = [
+          { name: 'name', defaultOption: true }
+        ]
+        const makeMWOptions = cmdArgs(makeMWDefinitions, { argv, stopAtFirstUnknown: true } as any) as MakeMiddlewareOptions
+        argv = mainOptions._unknown || []
+        makeMiddleware(makeMWOptions)
         break
       case Options.Help:
         let longest = options.reduce<number>((s, v) => v.name.length > s ? v.name.length : s, 0)
