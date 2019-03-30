@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as cp from 'child_process'
 import { error, info } from '..'
+import * as rimraf from 'rimraf'
 import clone = require('git-clone')
 
 export interface CreateOptions {
@@ -10,16 +11,24 @@ export interface CreateOptions {
 }
 
 const sourceLocation = 'https://github.com/red5-server/red5'
+const testHost = "http://localhost:5000"
 
 export async function makeNewProject(createOptions: CreateOptions) {
+  // Gets the project directory that will be created
   let projectDir = path.join(process.cwd(), createOptions.project)
   console.log(info(`Attempting to create project "${createOptions.project}"`))
+  // Builds the project
   let built = await build(projectDir, createOptions)
   if (built) {
     console.log(info(`Attempting to install "node_modules"`))
+    // Installs the modules
     let installed = await installModules(projectDir)
     if (installed) {
-      console.log(info(`Starting the test server`))
+      // Removes the git directory
+      // Users should setup their own repository
+      rimraf.sync(path.join(projectDir, '.git'))
+      console.log(info(`Starting the test server on "${testHost}"`))
+      // Startup the server to make sure everything installed
       await startTestServer(projectDir)
       return true
     }
@@ -58,10 +67,12 @@ async function build(projectDir: string, createOptions: CreateOptions) {
 async function cloneRepository(projectDir: string, createOptions: CreateOptions) {
   return new Promise<boolean>(resolve => {
     clone(sourceLocation, projectDir, { shallow: true }, async () => {
-      if (createOptions.type == 'javascript') {
+      // If this is a typescript project compile it
+      if (createOptions.type == 'typescript') {
         return resolve(await compileTypeScript(projectDir))
       }
       console.log(info('TypeScript successfully built'))
+      // Clone is complete
       return resolve(true)
     })
   })
@@ -69,7 +80,8 @@ async function cloneRepository(projectDir: string, createOptions: CreateOptions)
 
 async function compileTypeScript(projectDir: string) {
   return new Promise<boolean>(resolve => {
-    cp.exec(`node ./node_modules/.bin/tsc "${projectDir}"`, (err, stdout, stderr) => {
+    // Execute tsc on the project directory
+    cp.exec(`node ./node_modules/.bin/tsc -p "${projectDir}"`, (err, stdout, stderr) => {
       if (err) {
         console.log(error(stderr))
         return resolve(false)
@@ -82,6 +94,7 @@ async function compileTypeScript(projectDir: string) {
 
 async function installModules(projectDir: string) {
   return new Promise<boolean>(resolve => {
+    // Install the node modules that are needed for the project
     cp.exec(`cd "${projectDir}" && npm install`, (err, stdout, stderr) => {
       if (err) {
         console.log(error(stderr))
@@ -97,9 +110,8 @@ async function startTestServer(projectDir: string) {
   return new Promise<boolean>(resolve => {
     cp.fork(`${path.join(projectDir, 'index.js')}`)
 
-    var url = 'http://localhost:5000'
-    var start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open')
-    cp.exec(start + ' ' + url)
+    let start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open')
+    cp.exec(start + ' ' + testHost)
 
     // cp.exec(`cd "${projectDir}" && node index.js`, (err, stdout, stderr) => {
     //   if (err) {

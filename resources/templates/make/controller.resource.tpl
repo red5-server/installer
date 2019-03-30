@@ -1,36 +1,36 @@
 module.exports = {
   /** @param {import('@red5/server').Client} client */
-  main(client) {
+  async main(client) {
     // TODO: Implement main
   },
 
   /** @param {import('@red5/server').Client} client */
-  create(client) {
+  async create(client) {
     // TODO: Implement create
   },
 
   /** @param {import('@red5/server').Client} client */
-  store(client) {
+  async store(client) {
     // TODO: Implement store
   },
 
   /** @param {import('@red5/server').Client} client */
-  show(client) {
+  async show(client) {
     // TODO: Implement show
   },
 
   /** @param {import('@red5/server').Client} client */
-  edit(client) {
+  async edit(client) {
     // TODO: Implement edit
   },
 
   /** @param {import('@red5/server').Client} client */
-  update(client) {
+  async update(client) {
     // TODO: Implement update
   },
 
   /** @param {import('@red5/server').Client} client */
-  destroy(client) {
+  async destroy(client) {
     // TODO: Implement destroy
   }
 }

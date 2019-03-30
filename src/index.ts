@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import * as cmdArgs from 'command-line-args'
-import { OptionDefinition, CommandLineOptions } from 'command-line-args'
+import { OptionDefinition } from 'command-line-args'
 process.argv.push('--color')
 import chalk from 'chalk'
 import * as path from 'path'
@@ -53,7 +53,7 @@ if (mainOptions.version === null) {
       case Options.New:
         const createDefinitions: OptionDefinition[] = [
           { name: 'project', defaultOption: true },
-          { name: 'type', defaultValue: 'typescript', type: String }
+          { name: 'type', defaultValue: 'javascript', type: String }
         ]
         const createOptions = cmdArgs(createDefinitions, { argv, stopAtFirstUnknown: true } as any) as CreateOptions
         argv = mainOptions._unknown || []
