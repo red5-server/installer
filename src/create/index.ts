@@ -26,7 +26,11 @@ export async function makeNewProject(createOptions: CreateOptions) {
     if (installed) {
       // Removes the git directory
       // Users should setup their own repository
-      rimraf.sync(path.join(projectDir, '.git'))
+      await new Promise(r => rimraf(path.join(projectDir, '.git'), () => r()))
+
+      // Rename '.env.example' to '.env'
+      await new Promise(r => fs.rename(path.join(projectDir, '.env.example'), path.join(projectDir, '.env'), () => r()))
+
       console.log(info(`Starting the test server on "${testHost}"`))
       // Startup the server to make sure everything installed
       await startTestServer(projectDir)
@@ -72,6 +76,7 @@ async function cloneRepository(projectDir: string, createOptions: CreateOptions)
         return resolve(await compileTypeScript(projectDir))
       }
       console.log(info('TypeScript successfully built'))
+
       // Clone is complete
       return resolve(true)
     })
