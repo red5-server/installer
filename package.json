@@ -2,12 +2,20 @@
   "name": "@red5/cli",
   "version": "1.0.0",
   "description": "red5 command line tools for managing and creating red5 projects.",
+  "scripts": {
+    "prepack": "rm -rf cli && rm -rf types && tsc -p ."
+  },
   "bin": {
     "red5": "cli/index.js"
   },
   "author": {
     "name": "Ryan Naddy"
   },
+  "files": [
+    "cli",
+    "resources",
+    "types"
+  ],
   "dependencies": {
     "chalk": "^2.4.2",
     "command-line-args": "^5.0.2",

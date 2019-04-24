@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as cp from 'child_process'
 import { error, info } from '..'
 import * as rimraf from 'rimraf'
-import clone = require('git-clone')
+const clone = require('git-clone')
 
 export interface CreateOptions {
   project: string
