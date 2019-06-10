@@ -113,7 +113,8 @@ async function installModules(projectDir: string) {
 
 async function startTestServer(projectDir: string) {
   return new Promise<boolean>(resolve => {
-    cp.fork(`${path.join(projectDir, 'index.js')}`)
+    // cp.fork(`${path.join(projectDir, 'index.js')}`)
+    cp.fork('npm start')
 
     let start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open')
     cp.exec(start + ' ' + testHost)
