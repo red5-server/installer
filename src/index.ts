@@ -9,6 +9,7 @@ import {
   makeController, makeMiddleware,
   MakeControllerOptions, MakeMiddlewareOptions
 } from './make'
+import { addPackage, AddPackageOptions, RemovePackageOptions, removePackage } from './add'
 
 export const error = chalk.bold.red
 export const warning = chalk.bold.yellow
@@ -26,6 +27,7 @@ interface Option {
 
 enum Options {
   New = 'new', Serve = 'serve',
+  Add = 'add', Remove = 'remove',
   MakeController = 'make:controller',
   MakeMiddleware = 'make:middleware',
   Help = 'help'
@@ -80,6 +82,20 @@ if (mainOptions.version === null) {
         const makeMWOptions = cmdArgs(makeMWDefinitions, { argv, stopAtFirstUnknown: true } as any) as MakeMiddlewareOptions
         argv = mainOptions._unknown || []
         makeMiddleware(makeMWOptions)
+        break
+      case Options.Add:
+        const addPackageDefinitions: OptionDefinition[] = [
+          { name: 'name', defaultOption: true }
+        ]
+        const addOptions = cmdArgs(addPackageDefinitions, { argv, stopAtFirstUnknown: true }) as AddPackageOptions
+        addPackage(addOptions)
+        break
+      case Options.Remove:
+        const removePackageDefinitions: OptionDefinition[] = [
+          { name: 'name', defaultOption: true }
+        ]
+        const removeOptions = cmdArgs(removePackageDefinitions, { argv, stopAtFirstUnknown: true }) as RemovePackageOptions
+        removePackage(removeOptions)
         break
       case Options.Help:
         let longest = options.reduce<number>((s, v) => v.name.length > s ? v.name.length : s, 0)

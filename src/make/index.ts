@@ -1,6 +1,9 @@
 import * as path from 'path'
 import * as fs from 'fs'
 
+export * from './controller'
+export * from './middleware'
+
 export interface MakeControllerOptions {
   name: string
   api: boolean
