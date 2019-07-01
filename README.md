@@ -1,5 +1,15 @@
 # Red5 Command Line Tool
 
+* [Installation](#Installation)
+* Project Management
+  * [New Project](#New-Project)
+* Package Management
+  * [Add Package](#Add-Package)
+  * [Remove Package](#Remove-Package)
+* Making Files
+  * [Make Controller](#Make-Controller)
+  * [Make Middleware](#Make-Middleware)
+
 ## Installation
 
 To install the command line tool run an `npm install`
@@ -72,4 +82,12 @@ red5 make:controller <controller-name> --api
 Creates a **Resource controller** containing all resource endpoints
 ```
 red5 make:controller <controller-name> --resource
+```
+
+## Make Middleware
+
+Make Middleware will make middleware that can then be hooked into within your routes.
+
+```
+red5 make:middleware <middleware-name>
 ```

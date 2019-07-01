@@ -1,6 +1,6 @@
 import { isRed5Project } from '../helper'
-import { error } from '..'
-import { PATH, RESOURCES, isFile, replaceTemplateVars, MakeMiddlewareOptions } from '.'
+import { error, PATH, RESOURCES, isFile, replaceTemplateVars } from '..'
+import { MakeMiddlewareOptions } from '.'
 import * as mkdirp from 'mkdirp'
 import * as path from 'path'
 import * as fs from 'fs'
