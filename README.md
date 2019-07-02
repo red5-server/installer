@@ -1,14 +1,14 @@
 # Red5 Command Line Tool
 
-* [Installation](#Installation)
+* [Installation](#installation)
 * Project Management
-  * [New Project](#New-Project)
+  * [New Project](#new-project)
 * Package Management
-  * [Add Package](#Add-Package)
-  * [Remove Package](#Remove-Package)
+  * [Add Package](#add-package)
+  * [Remove Package](#remove-package)
 * Making Files
-  * [Make Controller](#Make-Controller)
-  * [Make Middleware](#Make-Middleware)
+  * [Make Controller](#make-controller)
+  * [Make Middleware](#make-middleware)
 
 ## Installation
 
