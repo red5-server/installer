@@ -20,6 +20,7 @@
     "chalk": "^2.4.2",
     "command-line-args": "^5.0.2",
     "git-clone": "^0.1.0",
+    "glob": "^7.1.4",
     "mkdirp": "^0.5.1",
     "rimraf": "^2.6.3",
     "typescript": "^3.3.4000"
@@ -27,6 +28,7 @@
   "devDependencies": {
     "@types/chalk": "^2.2.0",
     "@types/command-line-args": "^5.0.0",
+    "@types/glob": "^7.1.1",
     "@types/mkdirp": "^0.5.2",
     "@types/node": "^10.14.2",
     "@types/rimraf": "^2.0.2"
