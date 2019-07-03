@@ -1,9 +1,9 @@
 import * as path from 'path'
 import * as fs from 'fs'
 import { error, PATH, RESOURCES, isFile, replaceTemplateVars } from '../..'
-import { Command } from '../Command'
+import { Command, CmdArguments } from '../Command'
 import * as mkdirp from 'mkdirp'
-import { OptionDefinition } from 'command-line-args';
+import ListCommands from '../list';
 
 interface CommandMakeOptions {
   name: string
@@ -15,7 +15,7 @@ export default class extends Command {
 
   public name: string = 'command:make'
   public description: string = 'Makes a new Command line command'
-  public options: OptionDefinition[] = [
+  public options: CmdArguments[] = [
     { name: 'name', defaultOption: true }
   ]
 
@@ -25,19 +25,24 @@ export default class extends Command {
     const COMMANDS_ROOT = 'app/commands'
 
     // Get the name of the command
-    let [command_group, command] = options.name.split(':')
+    let [command_group, command_name] = options.name.split(':').map(i => i.trim())
 
-    if (!command) {
-      command = command_group
+    if (!command_name) {
+      command_name = command_group
       command_group = ''
     }
 
     return new Promise<void>(async resolve => {
-      let commandPath = path.join(PATH, COMMANDS_ROOT, command_group, command + '.js')
-      if (await isFile(commandPath)) {
-        console.log(error('This command already exists.'))
+
+      let cmd = await ListCommands.getCommand(command_group, command_name)
+
+      if (cmd) {
+        if (cmd.builtin) console.log(error(`"${options.name}" is a builtin command that cannot be overwritten.`))
+        else console.log(error(`"${options.name}" already exists.`))
         return resolve()
       }
+
+      let commandPath = path.join(PATH, COMMANDS_ROOT, command_group, command_name + '.js')
 
       mkdirp.sync(path.join(PATH, COMMANDS_ROOT, command_group))
 
@@ -46,7 +51,7 @@ export default class extends Command {
         .pipe(fs.createWriteStream(commandPath))
         .on('close', () => {
           let contents = fs.readFileSync(commandPath).toString()
-          fs.writeFileSync(commandPath, replaceTemplateVars(contents, [['name', `${command_group}:${command}`]]))
+          fs.writeFileSync(commandPath, replaceTemplateVars(contents, [['name', options.name]]))
           resolve()
         })
     })

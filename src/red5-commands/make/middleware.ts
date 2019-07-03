@@ -1,10 +1,8 @@
-import { isRed5Project } from '../../helper'
 import { error, PATH, RESOURCES, isFile, replaceTemplateVars } from '../..'
 import * as mkdirp from 'mkdirp'
 import * as path from 'path'
 import * as fs from 'fs'
-import { Command } from '../Command';
-import { OptionDefinition } from 'command-line-args';
+import { Command, CmdArguments } from '../Command'
 
 interface MakeMiddlewareOptions {
   name: string
@@ -13,7 +11,7 @@ export default class extends Command {
 
   public name: string = 'make:middleware'
   public description: string = 'Creates a new middleware handler'
-  public options: OptionDefinition[] = [
+  public options: CmdArguments[] = [
     { name: 'name', defaultOption: true }
   ]
 

@@ -1,4 +1,4 @@
-import { Command } from '../Command';
+import { Command, CmdArguments } from '../Command';
 import { OptionDefinition } from 'command-line-args';
 import * as cp from 'child_process'
 import * as os from 'os'
@@ -26,7 +26,7 @@ interface NPMPackage {
 export default class extends Command {
   public name: string = 'package:remove'
   public description: string = 'Removes a supported red5 package'
-  public options: OptionDefinition[] = [{ name: 'name', defaultOption: true }]
+  public options: CmdArguments[] = [{ name: 'name', defaultOption: true }]
 
   public async fire(options: RemovePackageOptions) {
     if (!options.name) throw new Error('A package name must be set')

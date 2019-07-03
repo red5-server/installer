@@ -1,5 +1,5 @@
 import { error, PATH, RESOURCES, isFile } from '../..'
-import { Command } from '../Command'
+import { Command, CmdArguments } from '../Command'
 import * as mkdirp from 'mkdirp'
 import * as path from 'path'
 import * as fs from 'fs'
@@ -13,10 +13,10 @@ interface MakeControllerOptions {
 export default class extends Command {
   public name: string = 'make:controller'
   public description: string = 'Creates a new controller endpoint'
-  public options = [
+  public options: CmdArguments[] = [
     { name: 'name', type: String, defaultOption: true },
-    { name: 'api', type: Boolean, defaultValue: false },
-    { name: 'resource', type: Boolean, defaultValue: false }
+    { name: 'api', type: Boolean, defaultValue: false, description: 'Creates a controller without "create" or "edit" endpoints' },
+    { name: 'resource', type: Boolean, defaultValue: false, description: 'Creates a controller with all endpoints' }
   ]
 
   public async fire(options: MakeControllerOptions) {

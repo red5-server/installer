@@ -8,7 +8,7 @@ module.exports = class extends Command {
     this.description = 'Command Description'
   }
 
-  fire() {
+  async fire() {
     // TODO: Implement the command
   }
 }

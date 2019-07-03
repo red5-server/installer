@@ -3,8 +3,7 @@ import * as path from 'path'
 import * as cp from 'child_process'
 import { error, info } from '..'
 import * as rimraf from 'rimraf'
-import { Command } from './Command';
-import { OptionDefinition } from 'command-line-args';
+import { Command, CmdArguments } from './Command'
 const clone = require('git-clone')
 
 export interface CreateOptions {
@@ -18,9 +17,9 @@ const testHost = 'http://localhost:5000'
 export default class extends Command {
   public name: string = 'new';
   public description: string = 'Creates a new red5 project';
-  public options: OptionDefinition[] = [
+  public options: CmdArguments[] = [
     { name: 'project', defaultOption: true },
-    { name: 'type', defaultValue: 'javascript', type: String }
+    { name: 'type', defaultValue: 'javascript', type: String, description: 'The type of project "javascript" or "typescript"' }
   ]
 
   public async fire(options: CreateOptions) {
