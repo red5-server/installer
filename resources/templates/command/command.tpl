@@ -6,6 +6,7 @@ module.exports = class extends Command {
     super()
     this.name = '$${{name}}'
     this.description = 'Command Description'
+    this.options = []
   }
 
   async fire() {
