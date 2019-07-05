@@ -2,44 +2,41 @@ import { Command, CmdArguments } from '../Command'
 import * as path from 'path'
 import * as cp from 'child_process'
 import * as fs from 'fs'
-import chalk from 'chalk'
+import * as mkdirp from 'mkdirp'
+import * as dotenv from 'dotenv'
+
+dotenv.config({ path: path.join(process.cwd(), '.env') })
+
+const isProd = ['prod', 'production'].includes(process.env.APP_ENV || 'prod')
 
 export default class ListCommands extends Command {
   public name: string = 'server:start'
-  public description: string = 'Creates a test server to run your website'
+  public description: string = 'Creates a development server for testing'
   public options: CmdArguments[] = []
 
-  private _server: cp.ChildProcess | null = null
-
   public async fire() {
-    // setInterval(this._watch.bind(this), 1000)
-    this._createServer()
-  }
-
-  private _watch() {
-    if (!this._server) this._createServer()
-  }
-
-  private _createServer() {
-    console.log(chalk.blueBright(`Starting the development server at [${new Date().toLocaleString()}]`))
-    cp.fork(path.join(process.cwd(), 'index.js'), [], { detached: true, silent: true })
-    // this._server = cp.fork(path.join(process.cwd(), 'index.js'), [], { detached: true })
-    // this._server.stdout && this._server.stdout.on('data', chunk => console.log(chunk))
-    // this._server.stderr && this._server.stderr.on('data', chunk => console.error(chunk))
-    // fs.watch(path.join(process.cwd(), 'app'), { recursive: true }).on('change', this._change.bind(this))
-    // fs.watch(path.join(process.cwd(), 'config'), { recursive: true }).on('change', this._change.bind(this))
-    // fs.watch(path.join(process.cwd(), 'routes'), { recursive: true }).on('change', this._change.bind(this))
-  }
-
-  private _change() {
-    if (this._server) {
-      console.log(chalk.blueBright(`File changed at [${new Date().toLocaleString()}] restarting the development server`))
-      fs.unwatchFile(path.join(process.cwd(), 'app'))
-      fs.unwatchFile(path.join(process.cwd(), 'config'))
-      fs.unwatchFile(path.join(process.cwd(), 'routes'))
-      this._server.kill()
-      this._server = null
-      console.log(chalk.greenBright(`Sever has successfully shut down at [${new Date().toLocaleString()}]`))
+    let out: any = 'ignore'
+    let err: any = 'ignore'
+    if (!isProd) {
+      let logs = path.join(process.cwd(), 'storage/framework/logs')
+      mkdirp.sync(logs)
+      out = fs.openSync(path.join(logs, 'server.log'), 'a')
+      err = fs.openSync(path.join(logs, 'server.log'), 'a')
     }
+
+    let child = cp.spawn('node', [path.join(__dirname, '../../server')], { detached: true, stdio: ['ignore', out, err, 'ignore'] })
+
+    let red5json = await import(path.join(process.cwd(), 'red5.json'))
+    if (!red5json.server) red5json.server = {}
+    if (red5json.server.pid && red5json.server.pid > 0) {
+      // Attempt to kill the process
+      // If start gets called when a process is already running we need to kill it
+      // otherwise there will be multiple servers running which can cause issues
+      try { process.kill(red5json.server.pid) } catch (e) { }
+    }
+    red5json.server.pid = child.pid
+    fs.writeFile(path.join(process.cwd(), 'red5.json'), JSON.stringify(red5json, null, 2), () => { })
+
+    child.unref()
   }
 }

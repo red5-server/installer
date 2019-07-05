@@ -129,7 +129,7 @@ async function runCommand() {
 
             // This is a help command, show the help information and exit
             if (mainOptions.help === null) {
-              let defaultOption = command.options.find(i => i.defaultOption)
+              let defaultOption = command.options.find(i => i.defaultOption || false)
 
               // Log the command
               console.log(`\x1b[32musage: red5 ${command.name} ${defaultOption ? `<${defaultOption.name}>` : ''}\x1b[0m\n`)
