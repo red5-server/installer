@@ -4,96 +4,169 @@ import { OptionDefinition } from 'command-line-args'
 process.argv.push('--color')
 import chalk from 'chalk'
 import * as path from 'path'
-import { makeNewProject, CreateOptions } from './create'
-import {
-  makeController, makeMiddleware,
-  MakeControllerOptions, MakeMiddlewareOptions
-} from './make'
+import * as fs from 'fs'
+import * as glob from 'glob'
+import { Command } from './red5-commands/Command'
+import { isRed5Project } from './helper'
+import ListCommands, { ItemInfo } from './red5-commands/list'
 
 export const error = chalk.bold.red
 export const warning = chalk.bold.yellow
 export const info = chalk.bold.cyan
 
+/** @type {string} The Location of the current directory the script is executing within (This is where a red5 project should be living) */
+export const PATH: string = process.cwd()
+
+/** @type {string} The root location of where the resources such as template files live */
+export const RESOURCES: string = path.join(__dirname, '../resources')
+
 const mainDefinitions: OptionDefinition[] = [
   { name: 'command', defaultOption: true },
-  { name: 'version', alias: 'v', defaultValue: '1' }
+  { name: 'version', alias: 'v', defaultValue: '1' },
+  { name: 'help', alias: 'h', defaultValue: '1' }
 ]
 
-interface Option {
-  name: Options
-  description: string
+
+/**
+ * Tests if a path is the location of an existing file or directory
+ *
+ * @export
+ * @param {string} path The path to the file
+ * @returns {Promise<boolean>}
+ */
+export async function isFile(path: string): Promise<boolean> {
+  return new Promise<boolean>(resolve => {
+    fs.stat(path, (err, stats) => resolve(err ? false : stats.isFile() || stats.isDirectory()))
+  })
 }
 
-enum Options {
-  New = 'new', Serve = 'serve',
-  MakeController = 'make:controller',
-  MakeMiddleware = 'make:middleware',
-  Help = 'help'
+/**
+ * Replaces the template variables with data
+ *
+ * @export
+ * @param {string} data The template string
+ * @param {[string, string][]} replacements The replacement data where `index 0` is the key and `index 1` is the value
+ * @returns {string} The new template with the variables replaced
+ */
+export function replaceTemplateVars(data: string, replacements: [string, string][]): string {
+  replacements.forEach(item => {
+    let [find, replace] = item
+    data = data.replace(new RegExp('\\$\\$\\{\\{' + find + '\\}\\}', 'g'), replace)
+  })
+  return data
 }
 
-let options: Option[] = [
-  { name: Options.New, description: 'Creates a new project' },
-  { name: Options.MakeController, description: `Makes a new controller` },
-  { name: Options.MakeMiddleware, description: `Makes a new middleware` },
-  { name: Options.Serve, description: 'Serves the current project' },
-]
 
-const mainOptions = cmdArgs(mainDefinitions, { stopAtFirstUnknown: true } as any)
-let argv = mainOptions._unknown || []
-if (mainOptions.version === null) {
-  try {
-    let json = require(path.join(process.cwd(), 'node_modules/red5/package.json'))
-    console.log(json.version)
-  } catch (e) {
-    console.log(error('This is not a working red5 application'))
-  }
-} else {
-  try {
-    switch (mainOptions.command) {
-      case Options.New:
-        const createDefinitions: OptionDefinition[] = [
-          { name: 'project', defaultOption: true },
-          { name: 'type', defaultValue: 'javascript', type: String }
-        ]
-        const createOptions = cmdArgs(createDefinitions, { argv, stopAtFirstUnknown: true } as any) as CreateOptions
-        argv = mainOptions._unknown || []
-        makeNewProject(createOptions)
-        break
-      case Options.Serve:
-        // serve()
-        console.log(warning('Not yet implemented'))
-        break
-      case Options.MakeController:
-        const makeDefinitions: OptionDefinition[] = [
-          { name: 'name', type: String, defaultOption: true },
-          { name: 'api', type: Boolean, defaultValue: false },
-          { name: 'resource', type: Boolean, defaultValue: false }
-        ]
-        const makeOptions = cmdArgs(makeDefinitions, { argv, stopAtFirstUnknown: true } as any) as MakeControllerOptions
-        argv = mainOptions._unknown || []
-        makeController(makeOptions)
-        break
-      case Options.MakeMiddleware:
-        const makeMWDefinitions: OptionDefinition[] = [
-          { name: 'name', defaultOption: true }
-        ]
-        const makeMWOptions = cmdArgs(makeMWDefinitions, { argv, stopAtFirstUnknown: true } as any) as MakeMiddlewareOptions
-        argv = mainOptions._unknown || []
-        makeMiddleware(makeMWOptions)
-        break
-      case Options.Help:
-        let longest = options.reduce<number>((s, v) => v.name.length > s ? v.name.length : s, 0)
-        for (let opt of options) {
-          console.log(''.padStart(2) + `${opt.name}`.padEnd(longest + 4) + `${opt.description}`)
-        }
-        break
-      default:
-        console.log(error('Missing command'))
-        console.log('  red5 <command> [options]')
-        console.log('  -- Run "red5 help" for help')
-        break
+// interface Option {
+//   name: Options
+//   description: string
+// }
+
+// enum Options {
+//   New = 'new', Serve = 'serve',
+//   Add = 'add', Remove = 'remove',
+//   MakeController = 'make:controller',
+//   MakeMiddleware = 'make:middleware',
+//   CommandMake = 'command:make',
+//   Help = 'help'
+// }
+
+// let options: Option[] = [
+//   { name: Options.New, description: 'Creates a new project' },
+//   { name: Options.MakeController, description: `Makes a new controller` },
+//   { name: Options.MakeMiddleware, description: `Makes a new middleware` },
+//   { name: Options.CommandMake, description: `Makes a new command` },
+//   { name: Options.Serve, description: 'Serves the current project' },
+// ]
+
+async function runCommand() {
+  const mainOptions = cmdArgs(mainDefinitions, { stopAtFirstUnknown: true } as any)
+  if (mainOptions.version === null) {
+    try {
+      let packages = await new Promise<string[]>(r => glob(path.join(process.cwd(), 'node_modules/@red5/*/package.json'), (e, res) => r(res)))
+      let longest = 0
+      let info = []
+      for (let file of packages) {
+        let json = await import(file)
+        longest = json.name.length > longest ? json.name.length : longest
+        info.push({ name: json.name, version: json.version })
+      }
+      info.forEach(str => console.log(`${str.name.padEnd(longest, ' ')} -> ${str.version}`))
+    } catch (e) {
+      console.log(error('This is not a working red5 application'))
     }
-  } catch (e) {
-    console.log(error(e.message))
+  } else {
+    try {
+      switch (mainOptions.command) {
+        // case Options.Serve:
+        //   // serve()
+        //   console.log(warning('Not yet implemented'))
+        //   break
+        // case Options.Help:
+        //   let longest = options.reduce<number>((s, v) => v.name.length > s ? v.name.length : s, 0)
+        //   for (let opt of options) {
+        //     console.log(''.padStart(2) + `${opt.name}`.padEnd(longest + 4) + `${opt.description}`)
+        //   }
+        //   break
+        default:
+          try {
+            let [command_group, command_name] = mainOptions.command.split(':')
+            // Makes sure this is a red5 project before running the command unless this is a new project
+            if (command_name != 'new' && !(await isRed5Project())) {
+              console.log(error('This is not a red5 project'))
+              console.log('  -- Run "red5 new <project-name>" to create a new project')
+              return
+            }
+
+            // Gets the command to execute
+            let cmd = await ListCommands.getCommand(command_group, command_name) as ItemInfo
+
+            // Loads the command and creates an instance
+            let reqCmd = await import(cmd.file)
+            let command: Command
+            if (reqCmd && reqCmd.default) command = new reqCmd.default()
+            else command = new reqCmd()
+
+            // This is a help command, show the help information and exit
+            if (mainOptions.help === null) {
+              let defaultOption = command.options.find(i => i.defaultOption || false)
+
+              // Log the command
+              console.log(`\x1b[32musage: red5 ${command.name} ${defaultOption ? `<${defaultOption.name}>` : ''}\x1b[0m\n`)
+
+              // Log the description
+              console.log(`${command.description || ''}\n`)
+              let longest = command.options.reduce((acc, val) => val.name.length > acc && !val.defaultOption ? val.name.length : acc, 0)
+
+              // Log all the values and their description
+              command.options.forEach(opt => {
+                if (opt.defaultOption) return
+                console.log(`    ${opt.alias ? '-' + opt.alias + ', ' : ''}--${opt.name.padEnd(longest + 2, ' ')} ${opt.description || ''}`)
+              })
+              return
+            }
+
+            try {
+              // Make sure the name and description are set and are correct
+              if (!command.name) throw new Error('Command does not have a name')
+              else if (!command.description) throw new Error('Command does not have a description')
+              else if (command.name != mainOptions.command) throw new Error(`Command name mismatch: "${mainOptions.command}" -> "${command.name}"`)
+              // Executes the command
+              else await command.fire(command.makeArgs(mainDefinitions))
+            } catch (e) {
+              console.log(e)
+            }
+          } catch (e) {
+            console.log(error('Command was not found'))
+            console.log('  red5 <command> [options]')
+            console.log('  -- Run "red5 list" for a list of commands')
+          }
+          break
+      }
+    } catch (e) {
+      console.log(error(e.message))
+    }
   }
 }
+
+runCommand()
