@@ -4,6 +4,7 @@ import * as cp from 'child_process'
 import { error, info } from '..'
 import * as rimraf from 'rimraf'
 import { Command, CmdArguments } from './Command'
+import StartServerCommand from './server/start';
 const clone = require('git-clone')
 
 export interface CreateOptions {
@@ -25,11 +26,11 @@ export default class extends Command {
   public async fire(options: CreateOptions) {
     // Gets the project directory that will be created
     let projectDir = path.join(process.cwd(), options.project)
-    console.log(info(`Attempting to create project "${options.project}"`))
+    console.log(info(`Creating project "${options.project}"`))
     // Builds the project
     let built = await this.build(projectDir, options)
     if (built) {
-      console.log(info(`Attempting to install "node_modules"`))
+      console.log(info(`Installing "node_modules"`))
       // Installs the modules
       let installed = await this.installModules(projectDir)
       if (installed) {
@@ -40,7 +41,7 @@ export default class extends Command {
         // Rename '.env.example' to '.env'
         await new Promise(r => fs.rename(path.join(projectDir, '.env.example'), path.join(projectDir, '.env'), () => r()))
 
-        console.log(info(`Starting the test server on "${testHost}"`))
+        // console.log(info(`Starting the test server on "${testHost}"`))
         // Startup the server to make sure everything installed
         await this.startTestServer(projectDir)
         return true
@@ -82,9 +83,10 @@ export default class extends Command {
       clone(sourceLocation, projectDir, { shallow: true }, async () => {
         // If this is a typescript project compile it
         if (createOptions.type == 'typescript') {
-          return resolve(await this.compileTypeScript(projectDir))
+          let result = await this.compileTypeScript(projectDir)
+          console.log(result ? info('TypeScript successfully built') : error('TypeScript wasn\'t built'))
+          return resolve(result)
         }
-        console.log(info('TypeScript successfully built'))
 
         // Clone is complete
         return resolve(true)
@@ -95,7 +97,7 @@ export default class extends Command {
   private async compileTypeScript(projectDir: string) {
     return new Promise<boolean>(resolve => {
       // Execute tsc on the project directory
-      cp.exec(`node ./node_modules/.bin/tsc -p "${projectDir}"`, (err, stdout, stderr) => {
+      let child = cp.exec(`node ./node_modules/.bin/tsc -p "${projectDir}"`, (err, stdout, stderr) => {
         if (err) {
           console.log(error(stderr))
           return resolve(false)
@@ -103,6 +105,7 @@ export default class extends Command {
         console.log(info('JavaScript successfully built'))
         return resolve(true)
       })
+      child.stdout.on('data', chunk => process.stdout.write(chunk))
     })
   }
 
@@ -121,21 +124,21 @@ export default class extends Command {
   }
 
   private async startTestServer(projectDir: string) {
-    return new Promise<boolean>(resolve => {
-      // cp.fork(`${path.join(projectDir, 'index.js')}`)
-      cp.fork('npm start')
+    await StartServerCommand.start({ path: projectDir })
+    // return new Promise<boolean>(resolve => {
+    //   // cp.fork(`${path.join(projectDir, 'index.js')}`)
+    //   // cp.fork('npm start')
+    //   // let start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open')
+    //   // cp.exec(start + ' ' + testHost)
 
-      let start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open')
-      cp.exec(start + ' ' + testHost)
-
-      // cp.exec(`cd "${projectDir}" && node index.js`, (err, stdout, stderr) => {
-      //   if (err) {
-      //     console.log(error(stderr))
-      //     return resolve(false)
-      //   }
-      //   console.log(info('node_modules successfully installed'))
-      //   return resolve(true)
-      // })
-    })
+    //   // cp.exec(`cd "${projectDir}" && node index.js`, (err, stdout, stderr) => {
+    //   //   if (err) {
+    //   //     console.log(error(stderr))
+    //   //     return resolve(false)
+    //   //   }
+    //   //   console.log(info('node_modules successfully installed'))
+    //   //   return resolve(true)
+    //   // })
+    // })
   }
 }

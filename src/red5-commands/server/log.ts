@@ -2,16 +2,33 @@ import { Command, CmdArguments } from '../Command'
 import * as path from 'path'
 import * as cp from 'child_process'
 import * as fs from 'fs'
+import { isRed5Project, notAProject } from '../../helper'
+import { error } from '../..';
 
-export default class ListCommands extends Command {
+interface ServerLogOptions {
+  path?: string
+}
+
+export default class ServerLogCommand extends Command {
   public name: string = 'server:log'
   public description: string = 'Watches the server log in real time'
-  public options: CmdArguments[] = []
+  public options: CmdArguments[] = [
+    { name: 'path', defaultOption: true, description: 'The path to a red5 project to watch' }
+  ]
 
-  public async fire() {
-    let watch = cp.spawn('tail', ['-f', path.join(process.cwd(), 'storage/framework/logs/server.log')], { windowsHide: true })
+  public async fire(options: ServerLogOptions) {
+    let dir = options.path ? path.resolve(process.cwd(), options.path) : process.cwd()
+    if (!await isRed5Project(dir)) return notAProject()
+    try {
+      let log = path.join(dir, 'storage/framework/logs/server.log')
+      if (!fs.existsSync(log)) fs.openSync(log, 'w')
+      console.log('Reading log file:', log)
+      let watch = cp.spawn('tail', ['-f', log], { windowsHide: true })
 
-    watch.stdout && watch.stdout.on('data', chunk => process.stdout.write(chunk))
-    watch.stdout && watch.stderr.on('data', chunk => process.stdout.write(chunk))
+      watch.stdout && watch.stdout.on('data', chunk => process.stdout.write(chunk))
+      watch.stdout && watch.stderr.on('data', chunk => process.stdout.write(chunk))
+    } catch (e) {
+      console.log(error(e.message))
+    }
   }
 }

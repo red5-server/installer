@@ -7,12 +7,12 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as glob from 'glob'
 import { Command } from './red5-commands/Command'
-import { isRed5Project } from './helper'
+import { isRed5Project, notAProject } from './helper'
 import ListCommands, { ItemInfo } from './red5-commands/list'
 
-export const error = chalk.bold.red
-export const warning = chalk.bold.yellow
-export const info = chalk.bold.cyan
+export const error = chalk.red
+export const warning = chalk.yellow
+export const info = chalk.cyan
 
 /** @type {string} The Location of the current directory the script is executing within (This is where a red5 project should be living) */
 export const PATH: string = process.cwd()
@@ -112,10 +112,15 @@ async function runCommand() {
           try {
             let [command_group, command_name] = mainOptions.command.split(':')
             // Makes sure this is a red5 project before running the command unless this is a new project
-            if (command_name != 'new' && !(await isRed5Project())) {
-              console.log(error('This is not a red5 project'))
-              console.log('  -- Run "red5 new <project-name>" to create a new project')
-              return
+            let isProject = await isRed5Project()
+            // console.log(command_group, command_name)
+            // console.log(command_group != 'new', command_name != '', isProject)
+            // let red5Project =
+            if (
+              (command_group != 'new' && command_name != '' && !isProject) &&
+              (command_group != 'server' && !['start', 'stop', 'log'].includes(command_name))
+            ) {
+              return notAProject()
             }
 
             // Gets the command to execute

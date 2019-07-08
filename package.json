@@ -1,9 +1,11 @@
 {
   "name": "@red5/cli",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "red5 command line tools for managing and creating red5 projects.",
   "scripts": {
-    "prepack": "rm -rf cli && rm -rf types && tsc -p ."
+    "prepack": "rm -rf cli && rm -rf types && tsc -p .",
+    "build": "tsc -p .",
+    "watch": "tsc -w -p ."
   },
   "bin": {
     "red5": "cli/index.js"
