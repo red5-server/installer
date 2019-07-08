@@ -12,7 +12,7 @@ export default class ListCommands extends Command {
       let red5json = await import(path.join(process.cwd(), 'red5.json'))
       if (red5json.server && red5json.server.pid) {
         let pid = red5json.server.pid
-        process.kill(pid)
+        process.kill(-pid)
         delete red5json.server.pid
       }
       fs.truncate(path.join(process.cwd(), 'storage/framework/logs/server.log'), () => { })
