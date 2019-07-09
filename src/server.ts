@@ -3,6 +3,7 @@ import * as path from 'path'
 // import * as fs from 'fs'
 import chalk from 'chalk'
 import * as chokidar from 'chokidar'
+import ServerListCommand from './red5-commands/server/list';
 
 // The main server process
 let server: null | cp.ChildProcess
@@ -40,6 +41,7 @@ async function createServer() {
       console.log(chalk.greenBright(`Sever has successfully shut down at [${new Date().toLocaleString()}]`))
     })
     restarts = 0
+    ServerListCommand.addServer(cwd, process.pid)
   } catch (e) {
     if (restarts++ == maxRestarts) {
       process.kill(process.pid)

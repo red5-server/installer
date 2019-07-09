@@ -1,6 +1,7 @@
 import { Command, CmdArguments } from './Command'
 import * as glob from 'glob'
 import * as path from 'path'
+import { isRed5Project } from '../helper';
 
 export interface ItemInfo {
   name: string
@@ -89,7 +90,14 @@ export default class ListCommands extends Command {
     let { longest, fileInfo } = await ListCommands.getCommands()
 
     let entries = Object.entries<ItemInfo[]>(fileInfo).sort((a, b) => a[0].localeCompare(b[0]))
+    let isProject = await isRed5Project()
     for (let group of entries) {
+      // Only show the following if this is not a red5 project
+      if (!isProject && !group[1].find(i =>
+        ['new', 'list'].includes(i.commandGroup) ||
+        (['start', 'stop', 'log'].includes(i.commandName) && i.commandGroup == 'server')
+      )) continue
+
       console.log(`\x1b[32m${group[0]}\x1b[0m`)
       for (let item of group[1]) {
         console.log(`    ${item.name.padEnd(longest + 2, ' ')} ${item.description}`)

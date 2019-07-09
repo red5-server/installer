@@ -118,6 +118,7 @@ async function runCommand() {
             // let red5Project =
             if (
               (command_group != 'new' && command_name != '' && !isProject) &&
+              (command_group != 'list' && command_name != '' && !isProject) &&
               (command_group != 'server' && !['start', 'stop', 'log'].includes(command_name))
             ) {
               return notAProject()

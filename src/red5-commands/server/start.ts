@@ -14,7 +14,7 @@ interface ServerStartOptions {
 
 export default class StartServerCommand extends Command {
   public name: string = 'server:start'
-  public description: string = 'Creates a development server for testing'
+  public description: string = 'Starts a server that handles requests for an application'
   public options: CmdArguments[] = [
     { name: 'path', defaultOption: true, description: 'An optional path to a server to be started' }
   ]

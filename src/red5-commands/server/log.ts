@@ -11,7 +11,7 @@ interface ServerLogOptions {
 
 export default class ServerLogCommand extends Command {
   public name: string = 'server:log'
-  public description: string = 'Watches the server log in real time'
+  public description: string = 'Shows the output of a server log in real time'
   public options: CmdArguments[] = [
     { name: 'path', defaultOption: true, description: 'The path to a red5 project to watch' }
   ]
