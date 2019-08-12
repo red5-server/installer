@@ -37,7 +37,7 @@
     "@types/dotenv": "^6.1.1",
     "@types/glob": "^7.1.1",
     "@types/mkdirp": "^0.5.2",
-    "@types/node": "^10.14.12",
+    "@types/node": "^10.14.15",
     "@types/node-sass": "^4.11.0",
     "@types/rimraf": "^2.0.2"
   }
